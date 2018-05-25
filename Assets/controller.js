@@ -22,6 +22,7 @@ private var board = [
 	[0,0,0,0,0,0,0,0]
 	];
 var piecePrefab : GameObject;
+var pieceExp : GameObject;
 private var pieceList : GameObject[,] = new GameObject[8,8];
 private var pieceType : int = 0;
 private var white : int = 0;
@@ -65,6 +66,7 @@ function putPiece(key:Vector2) {
 			rotation = Quaternion.AngleAxis(0, Vector3(1, 0, 0));
 		}
 		pieceList[key.x, key.y] = Instantiate(piecePrefab, position, rotation);
+		Instantiate(pieceExp, position, Quaternion.identity);
 		pieceType = pieceType == 1 ? 2 : 1;
 		// 置くところが無いかチェック
 		if (!checkEnablePut() && !initialFlag) {
@@ -319,3 +321,5 @@ function OnGUI() {
 		GUI.Label(rect_gameover, result, labelStyleGameOver);
 	}
 }
+
+Start();
