@@ -304,7 +304,7 @@ function OnGUI() {
 	var rect_score : Rect = Rect(0, 0, Screen.width, Screen.height);
 	GUI.Label(rect_score, 'WHITE:' + white + '\nBLACK:' + black, labelStyleScore);
 	
-	var rect_piece : Rect = Rect(0, 0, Screen.width, Screen.height);
+	var rect_piece : Rect = Rect(0, 28, Screen.width, Screen.height);
 	var piece = pieceType == 1 ? 'black' : 'white';
 	GUI.Label(rect_piece, piece, labelStylePieceType);
 	
