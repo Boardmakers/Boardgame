@@ -8,8 +8,16 @@ function Update () {
 		var key_x = Mathf.Floor(v.x);
 		var key_y = Mathf.Floor(v.z);
 		GameObject.FindWithTag("GameController").SendMessage("putPiece", Vector2(key_x, key_y));
+		if (pieceType == 1){
+			Invoke("computer", 0.4f);
+		}
+	}
+	if(Input.GetKey(KeyCode.Escape)){
+		Application.LoadLevel("Menu");
 	}
 }
+
+
 
 private var board = [
 	[0,0,0,0,0,0,0,0],
@@ -23,6 +31,8 @@ private var board = [
 	];
 var piecePrefab : GameObject;
 var pieceExp : GameObject;
+var FireWorks : GameObject;
+public var SE : AudioSource;
 private var pieceList : GameObject[,] = new GameObject[8,8];
 private var pieceType : int = 0;
 private var white : int = 0;
@@ -31,12 +41,16 @@ private var gamestatus : String = 'play';
 var labelStyleScore : GUIStyle;
 var labelStylePieceType : GUIStyle;
 var labelStyleGameOver : GUIStyle;
+var runned : int = 0;
+var play : int = 0;
+
 
 function Start () {
 	pieceType = 2; putPiece(Vector2(3,3));
 	pieceType = 1; putPiece(Vector2(3,4));
 	pieceType = 1; putPiece(Vector2(4,3));
 	pieceType = 2; putPiece(Vector2(4,4));
+	play = 1;
 }
 
 // 石を板に置く
@@ -66,7 +80,11 @@ function putPiece(key:Vector2) {
 			rotation = Quaternion.AngleAxis(0, Vector3(1, 0, 0));
 		}
 		pieceList[key.x, key.y] = Instantiate(piecePrefab, position, rotation);
-		Instantiate(pieceExp, position, Quaternion.identity);
+		if (play == 1){
+			Instantiate(pieceExp, position, Quaternion.identity);
+			SE=GetComponent(AudioSource);
+			SE.PlayOneShot(SE.clip);
+		}
 		pieceType = pieceType == 1 ? 2 : 1;
 		// 置くところが無いかチェック
 		if (!checkEnablePut() && !initialFlag) {
@@ -105,6 +123,36 @@ function checkEnablePut() {
 		}
 	}
 	return false;
+}
+
+function computer() {
+	var ratios = [
+	[9,0,6,5,5,6,0,9],
+	[0,0,6,7,7,6,0,0],
+	[6,6,7,8,8,7,6,6],
+	[5,7,8,9,9,8,7,5],
+	[5,7,8,9,9,8,7,5],
+	[6,6,7,8,8,7,6,6],
+	[0,0,6,7,7,6,0,0],
+	[9,0,6,5,5,6,0,9]
+	];
+	var ratio = 0;
+	var enableCellList = Array();
+	for (var x=0; x<board.length; x++) {
+		for (var y=0; y<board.length; y++) {
+			if (ratio <= ratios[x][y] && board[x][y] == 0 && updateBoard(Vector2(x,y),false)) {
+				if (ratio < ratios[x][y]) {
+					enableCellList.clear();
+				}
+				ratio = ratios[x][y];
+				enableCellList.push(Vector2(x,y));
+			}
+		}
+	}
+	if (enableCellList.length > 0) {
+		var rand = Mathf.RoundToInt(Mathf.Round(Random.Range(0, enableCellList.length-1)));
+		putPiece(enableCellList[rand]);
+	}
 }
 
 // 盤面の更新、updateFlag が false なら
@@ -303,11 +351,13 @@ function calcStatus() {
 function OnGUI() {
 	var rect_score : Rect = Rect(0, 0, Screen.width, Screen.height);
 	GUI.Label(rect_score, 'WHITE:' + white + '\nBLACK:' + black, labelStyleScore);
+	//InfoText.text = 'WHITE:' + white + '\nBLACK:' + black;
 	
 	var rect_piece : Rect = Rect(0, 28, Screen.width, Screen.height);
 	var piece = pieceType == 1 ? 'black' : 'white';
 	GUI.Label(rect_piece, piece, labelStylePieceType);
 	
+	//InfoText2.text = piece;
 	var rect_gameover : Rect = Rect(0, Screen.height / 2 - 25, Screen.width, 50);
 	if (gamestatus == 'gameover') {
 		var result : String = '';
@@ -317,6 +367,10 @@ function OnGUI() {
 			result = 'black win!';
 		} else {
 			result = 'draw...';
+		}
+		if (runned == 0){
+			Instantiate(FireWorks, new Vector3(4.0f, -16.5f, 4.0f), new Quaternion.Euler(-90.0f, 0, 0));
+			runned = 1;
 		}
 		GUI.Label(rect_gameover, result, labelStyleGameOver);
 	}
